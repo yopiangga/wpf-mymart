@@ -2,12 +2,16 @@
 
 namespace frontend\controllers;
 
-use frontend\models\Item;
+use backend\models\ItemImage;
+use frontend\models\Item as ItemModel;
+use frontend\models\ItemCategory;
 use frontend\models\ItemSearch;
+use GuzzleHttp\Psr7\UploadedFile;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use Yii;
+use yii\data\Pagination;
 
 /**
  * ItemController implements the CRUD actions for Item model.
@@ -38,15 +42,32 @@ class ItemController extends Controller
      */
     public function actionIndex()
     {
-        $searchModel = new ItemSearch();
-        $dataProvider = $searchModel->search($this->request->queryParams);
+        $categorys = ItemCategory::find()->all();
+
+        $id = Yii::$app->getRequest()->getQueryParam('category');
+
+        if($id == 0 || $id == null){
+            $query = ItemModel::find();
+        } else {
+            $query = ItemModel::find()->where(['category_id'=> $id]);
+        }
+
+
+        $pages = new Pagination([
+            'totalCount' => $query->count(),
+            'pageSize' => 9
+        ]);
+
+        $items = $query->offset($pages->offset)->limit($pages->limit)->all();
 
         Yii::$app->MyComponent->trigger(Yii::$app->MyComponent::EVENT_STATISTIC);
 
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
+        return $this->render('index' , [
+            'items' => $items,
+            'pages' => $pages,
+            'categorys' => $categorys
         ]);
+
     }
 
     /**
@@ -70,7 +91,7 @@ class ItemController extends Controller
      */
     public function actionCreate()
     {
-        $model = new Item();
+        $model = new ItemModel();
 
         if ($this->request->isPost) {
             if ($model->load($this->request->post()) && $model->save()) {
@@ -128,7 +149,7 @@ class ItemController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = Item::findOne($id)) !== null) {
+        if (($model = ItemModel::findOne($id)) !== null) {
             return $model;
         }
 

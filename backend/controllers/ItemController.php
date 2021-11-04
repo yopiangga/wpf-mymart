@@ -1,20 +1,19 @@
 <?php
 
-namespace frontend\controllers;
+namespace backend\controllers;
 
-use frontend\models\Customer;
-use frontend\models\CustomerSearch;
-use frontend\models\Item;
-use frontend\models\Order;
-use frontend\models\OrderItem;
+use backend\models\Item;
+use backend\models\ItemSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
-use Yii;
+use backend\models\ItemImage;
+use yii\web\UploadedFile;
+
 /**
- * CustomerController implements the CRUD actions for Customer model.
+ * ItemController implements the CRUD actions for Item model.
  */
-class CustomerController extends Controller
+class ItemController extends Controller
 {
     /**
      * @inheritDoc
@@ -35,12 +34,12 @@ class CustomerController extends Controller
     }
 
     /**
-     * Lists all Customer models.
+     * Lists all Item models.
      * @return mixed
      */
     public function actionIndex()
     {
-        $searchModel = new CustomerSearch();
+        $searchModel = new ItemSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
 
         return $this->render('index', [
@@ -50,7 +49,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Displays a single Customer model.
+     * Displays a single Item model.
      * @param int $id ID
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
@@ -63,18 +62,29 @@ class CustomerController extends Controller
     }
 
     /**
-     * Creates a new Customer model.
+     * Creates a new Item model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new Customer();
-        $model->user_id = Yii::$app->user->id;
+        $model = new Item();
+        $modelImage = new ItemImage();
 
         if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
+            if ($model->load($this->request->post())) {
+                $modelImage->file1 = UploadedFile::getInstance(
+                    $modelImage, 'file1'
+                );
+                if($modelImage->file1 && $modelImage->validate()){
+                    $location = time() . '_' . $modelImage->file1->basename . '.' . $modelImage->file1->extension;
+                    $modelImage->file1->saveAs('./../../uploads/' . $location);
+                    $model->image = $location;
+                    
+                    if($model->save()){
+                        return $this->redirect(['view', 'id' => $model->id]);
+                    }
+                }
             }
         } else {
             $model->loadDefaultValues();
@@ -82,31 +92,47 @@ class CustomerController extends Controller
 
         return $this->render('create', [
             'model' => $model,
+            'modelImage' => $modelImage
         ]);
     }
 
     /**
-     * Updates an existing Customer model.
+     * Updates an existing Item model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param int $id ID
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
+
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        $modelImage = new ItemImage();
 
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if ($this->request->isPost && $model->load($this->request->post())) {
+            $modelImage->file1 = UploadedFile::getInstance(
+                $modelImage, 'file1'
+            );
+            if($modelImage->file1 && $modelImage->validate()){
+                $location = time() . '_' . $modelImage->file1->basename . '.' . $modelImage->file1->extension;
+                $modelImage->file1->saveAs('./../../uploads/' . $location);
+                $model->image = $location;
+
+                if($model->save()){
+                    return $this->redirect(['view', 'id' => $model->id]);
+                }
+            }
+
         }
 
         return $this->render('update', [
             'model' => $model,
+            'modelImage' => $modelImage
         ]);
     }
 
     /**
-     * Deletes an existing Customer model.
+     * Deletes an existing Item model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param int $id ID
      * @return mixed
@@ -120,44 +146,18 @@ class CustomerController extends Controller
     }
 
     /**
-     * Finds the Customer model based on its primary key value.
+     * Finds the Item model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID
-     * @return Customer the loaded model
+     * @return Item the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Customer::findOne($id)) !== null) {
+        if (($model = Item::findOne($id)) !== null) {
             return $model;
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
-    }
-
-    public function actionShowOrder(){
-        $customers = Customer::find()->all();
-        $items = Item::find()->all();
-        $orders = Order::find()->all();
-        $order_items = OrderItem::find()->all();
-
-        return $this->render('show-order', [
-            'customers' => $customers,
-            'orders' => $orders,
-            'order_items' => $order_items,
-            'items' => $items,
-        ]);
-    }
-
-    public function actionOrder($id){
-        $orderItem = new OrderItem();
-        $customer = Customer::find()->where(['user_id' => Yii::$app->user->id])->one();
-        $order = Order::find()->where(['customer_id' => $customer->id])->one();
-
-        $orderItem->order_id = $order->id;
-        $orderItem->item_id = $id;
-        $orderItem->save();
-        
-        return "berhasil";
     }
 }
