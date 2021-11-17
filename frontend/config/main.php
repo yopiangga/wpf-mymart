@@ -16,7 +16,7 @@ return [
     'components' => [
         'MyComponent' => [
             'class' => 'frontend\components\Statistic',
-            'on event-statistic' => ['frontend\components\Statistic', 'addStatistic']  
+            'on event-statistic' => ['frontend\components\Statistic', 'addStatistic']
         ],
         'request' => [
             'csrfParam' => '_csrf-frontend',
@@ -42,14 +42,19 @@ return [
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
-        
+
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
-            'rules' => [
-            ],
+            'rules' => [],
         ],
-        
+
+        'authManager' =>
+        [
+            'class' => 'yii\rbac\DbManager',
+            'defaultRoles' => ['guest'],
+        ],
+
     ],
     'params' => $params,
 ];

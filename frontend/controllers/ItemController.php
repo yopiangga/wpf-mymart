@@ -12,6 +12,8 @@ use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use Yii;
 use yii\data\Pagination;
+use yii\filters\AccessControl;
+use yii\web\ForbiddenHttpException;
 
 /**
  * ItemController implements the CRUD actions for Item model.
@@ -26,6 +28,17 @@ class ItemController extends Controller
         return array_merge(
             parent::behaviors(),
             [
+                'access' => [
+                    'class' => AccessControl::className(),
+                    'only' => ['delete'],
+                    'rules' => [
+                        [
+                            'actions' => ['delete'],
+                            'allow' => true,
+                            'roles' => ['@'],
+                        ],
+                    ],
+                ],
                 'verbs' => [
                     'class' => VerbFilter::className(),
                     'actions' => [
@@ -46,10 +59,10 @@ class ItemController extends Controller
 
         $id = Yii::$app->getRequest()->getQueryParam('category');
 
-        if($id == 0 || $id == null){
+        if ($id == 0 || $id == null) {
             $query = ItemModel::find();
         } else {
-            $query = ItemModel::find()->where(['category_id'=> $id]);
+            $query = ItemModel::find()->where(['category_id' => $id]);
         }
 
 
@@ -62,12 +75,11 @@ class ItemController extends Controller
 
         Yii::$app->MyComponent->trigger(Yii::$app->MyComponent::EVENT_STATISTIC);
 
-        return $this->render('index' , [
+        return $this->render('index', [
             'items' => $items,
             'pages' => $pages,
             'categorys' => $categorys
         ]);
-
     }
 
     /**
@@ -91,19 +103,23 @@ class ItemController extends Controller
      */
     public function actionCreate()
     {
-        $model = new ItemModel();
+        if (Yii::$app->user->can('create-item')) {
+            $model = new ItemModel();
 
-        if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
+            if ($this->request->isPost) {
+                if ($model->load($this->request->post()) && $model->save()) {
+                    return $this->redirect(['view', 'id' => $model->id]);
+                }
+            } else {
+                $model->loadDefaultValues();
             }
-        } else {
-            $model->loadDefaultValues();
-        }
 
-        return $this->render('create', [
-            'model' => $model,
-        ]);
+            return $this->render('create', [
+                'model' => $model,
+            ]);
+        } else {
+            throw new ForbiddenHttpException;
+        }
     }
 
     /**
