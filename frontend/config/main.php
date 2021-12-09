@@ -14,6 +14,9 @@ return [
     'bootstrap' => ['log'],
     'controllerNamespace' => 'frontend\controllers',
     'components' => [
+        'cache' => [
+            'class' => 'yii\caching\FileCache',
+        ],
         'MyComponent' => [
             'class' => 'frontend\components\Statistic',
             'on event-statistic' => ['frontend\components\Statistic', 'addStatistic']

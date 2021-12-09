@@ -1,21 +1,17 @@
 <?php
 
-namespace frontend\tests\acceptance;
-
-use frontend\tests\AcceptanceTester;
-use yii\helpers\Url;
-
-class HomeCest
+class HomeCest extends \Codeception\Test\Unit
 {
-    public function checkHome(AcceptanceTester $I)
+    /**
+     * @var \AcceptanceTester
+     */
+    protected $tester;
+
+    // tests
+    public function testSomeFeature(AcceptanceTester $I)
     {
-        $I->amOnPage(Url::toRoute('/site/index'));
-        $I->see('My Application');
-
-        $I->seeLink('About');
-        $I->click('About');
-        $I->wait(2); // wait for page to be opened
-
-        $I->see('This is the About page.');
+        $I->amOnPage('/login');
+        // $I->amOnPage('/');
+        // $I->see('h1', 'Congratulation!');
     }
 }

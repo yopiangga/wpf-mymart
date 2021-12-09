@@ -18,6 +18,14 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'category_id')->textInput() ?>
 
+    <?= $form->field($model, 'created_at')->textInput() ?>
+
+    <?= $form->field($model, 'updated_at')->textInput() ?>
+
+    <?= $form->field($model, 'created_by')->textInput() ?>
+
+    <?= $form->field($model, 'updated_by')->textInput() ?>
+
     <div class="form-group">
         <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
     </div>

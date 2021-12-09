@@ -14,7 +14,7 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="item-view">
 
     <h1><?= Html::encode($this->title) ?></h1>
-    <h4>Owner : Alfian Prisma Yopiangga</h4>
+
     <p>
         <?= Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
         <?= Html::a('Delete', ['delete', 'id' => $model->id], [
@@ -32,6 +32,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'id',
             'name',
             'price',
+            'image',
             'category_id',
             'created_at',
             'updated_at',

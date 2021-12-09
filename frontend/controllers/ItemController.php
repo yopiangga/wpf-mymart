@@ -2,18 +2,16 @@
 
 namespace frontend\controllers;
 
-use backend\models\ItemImage;
-use frontend\models\Item as ItemModel;
-use frontend\models\ItemCategory;
+use frontend\models\Item;
 use frontend\models\ItemSearch;
-use GuzzleHttp\Psr7\UploadedFile;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use Yii;
-use yii\data\Pagination;
 use yii\filters\AccessControl;
-use yii\web\ForbiddenHttpException;
+use frontend\models\ItemCategory;
+use frontend\models\Item as ItemModel;
+use yii\data\Pagination;
 
 /**
  * ItemController implements the CRUD actions for Item model.
@@ -28,17 +26,6 @@ class ItemController extends Controller
         return array_merge(
             parent::behaviors(),
             [
-                'access' => [
-                    'class' => AccessControl::className(),
-                    'only' => ['delete'],
-                    'rules' => [
-                        [
-                            'actions' => ['delete'],
-                            'allow' => true,
-                            'roles' => ['@'],
-                        ],
-                    ],
-                ],
                 'verbs' => [
                     'class' => VerbFilter::className(),
                     'actions' => [
@@ -55,32 +42,45 @@ class ItemController extends Controller
      */
     public function actionIndex()
     {
-        $categorys = ItemCategory::find()->all();
-
-        $id = Yii::$app->getRequest()->getQueryParam('category');
-
-        if ($id == 0 || $id == null) {
-            $query = ItemModel::find();
-        } else {
-            $query = ItemModel::find()->where(['category_id' => $id]);
-        }
-
-
-        $pages = new Pagination([
-            'totalCount' => $query->count(),
-            'pageSize' => 9
-        ]);
-
-        $items = $query->offset($pages->offset)->limit($pages->limit)->all();
-
-        Yii::$app->MyComponent->trigger(Yii::$app->MyComponent::EVENT_STATISTIC);
+        $query = ItemModel::find()->all();
 
         return $this->render('index', [
-            'items' => $items,
-            'pages' => $pages,
-            'categorys' => $categorys
+            'items' => $query,
         ]);
     }
+
+    // public function actionIndex()
+    // {
+    //     $categorys = ItemCategory::find()->all();
+
+    //     $id = Yii::$app->getRequest()->getQueryParam('category');
+
+    //     if ($id == 0 || $id == null) {
+    //         $duration = 10;
+    //         $query = ItemModel::getDb()->cache(function ($db) {
+    //             return ItemModel::find();
+    //         }, $duration);
+    //         // $query = ItemModel::find();
+    //     } else {
+    //         $query = ItemModel::find()->where(['category_id' => $id]);
+    //     }
+
+
+    //     $pages = new Pagination([
+    //         'totalCount' => $query->count(),
+    //         'pageSize' => 9
+    //     ]);
+
+    //     $items = $query->offset($pages->offset)->limit($pages->limit)->all();
+
+    //     Yii::$app->MyComponent->trigger(Yii::$app->MyComponent::EVENT_STATISTIC);
+
+    //     return $this->render('index', [
+    //         'items' => $items,
+    //         'pages' => $pages,
+    //         'categorys' => $categorys
+    //     ]);
+    // }
 
     /**
      * Displays a single Item model.
@@ -90,11 +90,12 @@ class ItemController extends Controller
      */
     public function actionView($id)
     {
-        Yii::$app->MyComponent->trigger(Yii::$app->MyComponent::EVENT_STATISTIC);
         return $this->render('view', [
             'model' => $this->findModel($id),
         ]);
     }
+
+
 
     /**
      * Creates a new Item model.
@@ -103,23 +104,19 @@ class ItemController extends Controller
      */
     public function actionCreate()
     {
-        if (Yii::$app->user->can('create-item')) {
-            $model = new ItemModel();
+        $model = new Item();
 
-            if ($this->request->isPost) {
-                if ($model->load($this->request->post()) && $model->save()) {
-                    return $this->redirect(['view', 'id' => $model->id]);
-                }
-            } else {
-                $model->loadDefaultValues();
+        if ($this->request->isPost) {
+            if ($model->load($this->request->post()) && $model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
             }
-
-            return $this->render('create', [
-                'model' => $model,
-            ]);
         } else {
-            throw new ForbiddenHttpException;
+            $model->loadDefaultValues();
         }
+
+        return $this->render('create', [
+            'model' => $model,
+        ]);
     }
 
     /**
@@ -165,7 +162,7 @@ class ItemController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = ItemModel::findOne($id)) !== null) {
+        if (($model = Item::findOne($id)) !== null) {
             return $model;
         }
 
